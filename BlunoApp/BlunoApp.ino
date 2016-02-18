@@ -12,16 +12,31 @@
 const String CONFIG_CODE = "1337";
 
 // Acceptable code lengths
-#define minCodeLength 1
-#define maxCodeLength LCD_LINE_LENGTH
-int prefCodeLength = minCodeLength;
+#define MIN_CODE_LENGTH 1
+#define MAX_CODE_LENGTH LCD_LINE_LENGTH
+#define NB_DIGITS_CODE_LENGTH 2
+int prefCodeLength = MIN_CODE_LENGTH;
 
-// Game mode
-#define ANTI_TERRO_A 1
-#define ANTI_TERRO_D 2
-#define CAPTURE 3
-#define DEFUSE 4
+// Game modes
+const int ANTI_TERRO_A = (int) '1';
+const int ANTI_TERRO_D = (int) '2';
+const int CAPTURE = (int) '3';
+const int DEFUSE = (int) '4';
 int gameMode = ANTI_TERRO_A;
+
+// Game duration
+#define MIN_GAME_DURATION 5
+int gameDuration = MIN_GAME_DURATION;
+
+// Key/Code choice
+const int KEY_ONLY = (int) '0';
+const int CODE_ONLY = (int) '1';
+const int KEY_OR_CODE = (int) '2';
+const int KEY_AND_CODE = (int) '3';
+int keyOrCode = KEY_OR_CODE;
+
+// Game code
+String gameCode = "";
 
 //------------------------------------------------------------------------------------------
 // LCD Configuration and methods
@@ -108,7 +123,7 @@ char readPad ()
 
 String readCode (int expectedLength = 0)
 {
-  if (expectedLength == 0) expectedLength = maxCodeLength;
+  if (expectedLength == 0) expectedLength = MAX_CODE_LENGTH;
   
   String theCode = "";
   char keyPressed;
@@ -135,36 +150,171 @@ String readCode (int expectedLength = 0)
   return theCode;
 }
 
+int readNumber (int nbDigits, int minValue, int maxValue)
+{
+  String numberString = "";
+  int number;
+  // Initial display
+  lcd.setCursor(0,1);
+  lcd.print(numberString);
+  
+  char keyPressed;
+
+  int charCounter = 0;
+    
+  while(true)
+  {
+    keyPressed = myKeypad.getKey();
+    
+    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < nbDigits)
+    {
+      Serial.println(keyPressed);
+      numberString += keyPressed;
+      charCounter++;
+      
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(numberString);
+    }
+    if (keyPressed == 'C' && charCounter > 0)
+    {
+      charCounter--;
+      numberString.remove(charCounter);      
+      
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(numberString);
+    }
+    if (keyPressed == 'D' && charCounter > 0)
+    {
+      number = numberString.toInt();
+      if (number >= minValue && number <= maxValue)
+      {
+        return number;
+      }
+      else
+      {
+        numberString = "";
+        charCounter = 0;
+        lcd.setCursor(0,1);
+        lcd.print("Invalid value   ");
+        delay(1000);
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+      }
+    }
+  }
+}
+
+int readDuration (int minDuration)
+{
+  String minutes = String(minDuration);
+  int duration = minDuration;
+  // Initial display
+  lcd.setCursor(0,1);
+  lcd.print(minutes);
+  lcd.print(" minutes");
+  
+  char keyPressed;
+
+  int charCounter = 0;
+    
+  while(true)
+  {
+    keyPressed = myKeypad.getKey();
+    
+    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < 2)
+    {
+      Serial.println(keyPressed);
+      if (charCounter == 0) minutes = keyPressed;
+      if (charCounter == 1) minutes += keyPressed;
+      charCounter++;
+      
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(minutes);
+      lcd.print(" minutes");
+    }
+    if (keyPressed == 'C')
+    {
+      minutes = String(minDuration);
+      charCounter = 0;
+      
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(minutes);
+      lcd.print(" minutes");
+    }
+    if (keyPressed == 'D')
+    {
+      duration = minutes.toInt();
+      if (duration >= minDuration)
+      {
+        return duration;
+      }
+      else
+      {
+        minutes = String(minDuration);
+        charCounter = 0;
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+        lcd.setCursor(0,1);
+        lcd.print(minutes);
+        lcd.print(" minutes");
+      }
+    }
+  }
+}
+
 //------------------------------------------------------------------------------------------
 // Displays
 //------------------------------------------------------------------------------------------
-#define ENTER_CONFIG_CODE_DISPLAY 0
-#define MANUAL_OR_BLUETOOTH_CONFIG_DISPLAY 1
-#define BLUETOOTH_CONFIG_DISPLAY 2
-#define GAME_MODE_CONFIG_DISPLAY 3
-#define GAME_DURATION_CONFIG_DISPLAY 4
-#define TIME_FOR_DEFUSING_CONFIG_DISPLAY 5
-#define KEY_CODE_CONFIG_DISPLAY 6
-#define CODE_LENGTH_CONFIG_DISPLAY 7
-#define CODE_DEFINITION_CONFIG_DISPLAY 8
-#define READY_TO_START_DISPLAY 9
-#define WAITING_FOR_CODE_DISPLAY 10
-#define WAITING_FOR_KEY_DISPLAY 11
-#define WAITING_FOR_BOTH_DISPLAY 12
-#define BOX_OPENED_DISPLAY 13
-#define END_OF_GAME_DISPLAY 14
+// Config displays
+#define ENTER_CODE_CONFIG_DISPLAY 0//
+#define MANUAL_OR_BLUETOOTH__CONFIG_DISPLAY 1//
+#define WAITING_BLUETOOTH_CONFIG_DISPLAY 2//~
+#define GAME_MODE_CONFIG_DISPLAY 3//
+#define GAME_DURATION_CONFIG_DISPLAY 4//
+#define KEY_CODE_CONFIG_DISPLAY 5//
+#define CODE_LENGTH_CONFIG_DISPLAY 6//
+#define CODE_DEFINITION_CONFIG_DISPLAY 7
+#define TIME_FOR_DEFUSING_CONFIG_DISPLAY 8
+#define NUMBER_OF_TEAMS_CONFIG_DISPLAY 9
+#define RANDOM_CODE_GENERATION_DISPLAY 10
+
+// Begin/end diplays
+#define READY_TO_START_DISPLAY 100
+#define END_OF_GAME_DISPLAY 101
+
+// Ingame displays
+#define WAITING_FOR_CODE_INGAME_DISPLAY 200
+#define WAITING_FOR_KEY_INGAME_DISPLAY 201
+#define WAITING_FOR_EITHER_INGAME_DISPLAY 202
+#define WAITING_FOR_TEAM_NUMBER_INGAME_DISPLAY 203
+#define WAITING_FOR_CODE_ACTIVATION_INGAME_DISPLAY 204
+#define WAITING_FOR_KEY_ACTIVATION_INGAME_DISPLAY 205
+#define WAITING_FOR_EITHER_ACTIVATION_INGAME_DISPLAY 206
 
 // Errors
-#define WRONG_CODE_LENGTH_DISPLAY 101
-#define WRONG_CODE_DISPLAY 102
-#define WRONG_DURATION_VALUE_DISPLAY 103
+#define CODE_LENGTH_ERROR_DISPLAY 300
+#define CODE_ERROR_DISPLAY 301
+#define BOX_OPENED_ERROR_DISPLAY 302
 
-// Variable
-int currentDisplay = ENTER_CONFIG_CODE_DISPLAY;
+// Variables to keep track of what is being displayed
+int currentDisplay = ENTER_CODE_CONFIG_DISPLAY;
 int previousDisplay = currentDisplay;
 
-//----------------------------- Config Code Display ----------------------------------------
-int enterConfigCodeDisplay ()
+//------------------------------------------------------------------------------------------
+// Config Displays Methods and Functions
+//------------------------------------------------------------------------------------------
+/**
+ * Enter Code Config Display
+ */
+int enterCodeConfigDisplay ()
 {
   lcd.clear();
   lcd.setCursor(0,0);
@@ -180,8 +330,10 @@ int enterConfigCodeDisplay ()
   }
 }
 
-//----------------------------- Config Manual/Bluetooth ------------------------------------
-int manualOrBluetoothDisplay ()
+/**
+ * Manual Or Bluetooth Config Display
+ */
+int manualOrBluetoothConfigDisplay ()
 {
   lcd.clear();
   lcd.setCursor(0,0);
@@ -198,7 +350,9 @@ int manualOrBluetoothDisplay ()
   }
 }
 
-//----------------------------- Bluetooth config Display -----------------------------------
+/** 
+ * Bluetooth Config Display
+ */
 int bluetoothConfigDisplay ()
 {
   lcd.clear();
@@ -217,8 +371,10 @@ int bluetoothConfigDisplay ()
   }
 }
 
-//----------------------------- Game mode config Display -----------------------------------
-int gameModeConfigDisplay ()
+/**
+ * Game Mode Config Display
+ */
+void gameModeConfigDisplay ()
 {
   int scroll = 0;
   long int currentTime = millis()/1000;
@@ -242,16 +398,16 @@ int gameModeConfigDisplay ()
     {
       case '1' :
         gameMode = ANTI_TERRO_A;
-        return gameMode;
+        return;
       case '2' :
         gameMode = ANTI_TERRO_D;
-        return gameMode;
+        return;
       case '3' :
         gameMode = CAPTURE;
-        return gameMode;
+        return;
       case '4' :
         gameMode = DEFUSE;
-        return gameMode;
+        return;
     }
 
     currentTime = millis()/1000;
@@ -283,43 +439,134 @@ int gameModeConfigDisplay ()
   }
 }
 
-//----------------------------- Game duration config Display -------------------------------
+/** 
+ * Game Duration Config Display
+ */
+void gameDurationConfigDisplay()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Game duration :");
+  gameDuration = readDuration(MIN_GAME_DURATION);
+}
 
-//----------------------------- Time for defusing config Display ---------------------------
+/**
+ * Key Code Config Display
+ */
+void keyCodeConfigDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("(1) Key|(2) Code");
+  lcd.setCursor(0,1);
+  lcd.print("(3) OR |(4) AND");
 
-//----------------------------- Key/Code config Display ------------------------------------
+  int keyPressed;
 
-//----------------------------- Code length config Display ---------------------------------
+  while (true)
+  {
+    keyPressed = (int) myKeypad.getKey();
 
-//----------------------------- Code definition config Display -----------------------------
+    // Depending on the key pressed, choose mode
+    switch (keyPressed)
+    {
+      case KEY_ONLY :
+        keyOrCode = KEY_ONLY;
+        return;
+      case CODE_ONLY :
+        keyOrCode = CODE_ONLY;
+        return;
+      case KEY_OR_CODE :
+        keyOrCode = KEY_OR_CODE;
+        return;
+      case KEY_AND_CODE :
+        keyOrCode = KEY_AND_CODE;
+        return;
+    }
+  }
+}
+/**
+ * Code Length Config Display
+ */
+void codeLengthConfigDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Code length :");
+  prefCodeLength = readNumber(NB_DIGITS_CODE_LENGTH, MIN_CODE_LENGTH, MAX_CODE_LENGTH);
+}
 
-//----------------------------- Ready to start Display -------------------------------------
+/**
+ * Code Definition Config Display
+ */
+void codeDefinitionConfigDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Enter the Code :");
+  gameCode = readCode();
+}
 
-//----------------------------- Waiting for code Display -----------------------------------
+/**
+ * Time For Defusing Config Display
+ */
 
-//----------------------------- Waiting for key Display ------------------------------------
+/**
+ * Number Of Teams Config Display
+ */
 
-//----------------------------- Waiting for both Display -----------------------------------
+/**
+ * Random Code Generation Display
+ */
 
-//----------------------------- Box opened ! Display ---------------------------------------
 
-//----------------------------- End of game Display ----------------------------------------
+//------------------------------------------------------------------------------------------
+// Begin/End Displays Methods and Functions
+//------------------------------------------------------------------------------------------
+/** 
+ * Ready To Start Display
+ */
+void readyToStartDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Ready ! Press");
+  lcd.setCursor(0,1);
+  lcd.print("D to Start !");
+  char pressedKey;
+  while(pressedKey != 'D')
+  {
+    pressedKey = myKeypad.getKey();
+    if (pressedKey != NO_KEY)
+    {
+      Serial.println("out");
+    }
+  }
+}
 
-//----------------------------- Wrong code length Display ----------------------------------
-void wrongCodeLengthDisplay ()
+//------------------------------------------------------------------------------------------
+// Error Displays Methods and Functions
+//------------------------------------------------------------------------------------------
+
+/** 
+ * Code Length Error Display
+ */
+void codeLengthErrorDisplay ()
 {
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Must have :");
   lcd.setCursor(0,1);
-  lcd.print(minCodeLength);
+  lcd.print(MIN_CODE_LENGTH);
   lcd.print(" < length < ");
-  lcd.print(maxCodeLength);
+  lcd.print(MAX_CODE_LENGTH);
   delay (1000);
 }
 
-//----------------------------- Wrong code Display -----------------------------------------
-void wrongCodeDisplay ()
+/**
+ * Code Error Display
+ */
+void codeErrorDisplay ()
 {
   lcd.clear();
   lcd.setCursor(0,0);
@@ -327,15 +574,118 @@ void wrongCodeDisplay ()
   delay (1000);
 }
 
-//----------------------------- Wrong duration value Display -------------------------------
-void wrongDurationValueDisplay ()
+//------------------------------------------------------------------------------------------
+// Config Methods
+//------------------------------------------------------------------------------------------
+void antiTerroAConfig ()
 {
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("0 < minutes < 60");
-  lcd.setCursor(0,1);
-  lcd.print("0 < seconds < 60");
-  delay (1000);
+  
+}
+
+void antiTerroDConfig ()
+{
+  
+}
+
+void captureConfig ()
+{
+  
+}
+
+void defuseConfig ()
+{
+  
+}
+
+void specificConfig ()
+{
+  switch (gameMode)
+  {
+    case ANTI_TERRO_A :
+      antiTerroAConfig();
+      break;
+    case ANTI_TERRO_D :
+      antiTerroDConfig();
+      break;
+    case CAPTURE :
+      captureConfig();
+      break;
+    case DEFUSE :
+      defuseConfig();
+      break;
+  }
+}
+
+void commonConfig ()
+{
+  int displayReturnValue;
+  
+  while (true)
+  {
+      switch (currentDisplay)
+      {
+        // General cases
+        case ENTER_CODE_CONFIG_DISPLAY :
+          displayReturnValue = enterCodeConfigDisplay();
+          if (displayReturnValue == 1) currentDisplay = MANUAL_OR_BLUETOOTH__CONFIG_DISPLAY;
+          else
+          {
+            previousDisplay = currentDisplay;
+            currentDisplay = CODE_ERROR_DISPLAY;
+          }
+          break;
+          
+        case MANUAL_OR_BLUETOOTH__CONFIG_DISPLAY :
+          displayReturnValue = manualOrBluetoothConfigDisplay();
+          if (displayReturnValue == 1) currentDisplay = GAME_MODE_CONFIG_DISPLAY;
+          else if (displayReturnValue == 2) currentDisplay = WAITING_BLUETOOTH_CONFIG_DISPLAY;
+          break;
+    
+        case WAITING_BLUETOOTH_CONFIG_DISPLAY :
+          displayReturnValue = bluetoothConfigDisplay();
+          if (displayReturnValue == 1) currentDisplay = READY_TO_START_DISPLAY;
+          else currentDisplay = MANUAL_OR_BLUETOOTH__CONFIG_DISPLAY;
+          break;
+    
+        case GAME_MODE_CONFIG_DISPLAY :
+          gameModeConfigDisplay();
+          currentDisplay = GAME_DURATION_CONFIG_DISPLAY;
+          break;
+        
+        case GAME_DURATION_CONFIG_DISPLAY :
+          gameDurationConfigDisplay();
+          currentDisplay = KEY_CODE_CONFIG_DISPLAY;
+          break;
+
+        case KEY_CODE_CONFIG_DISPLAY :
+          keyCodeConfigDisplay();
+          if (keyOrCode > 0) currentDisplay = CODE_LENGTH_CONFIG_DISPLAY;
+          else
+          {
+            specificConfig();
+            currentDisplay = READY_TO_START_DISPLAY;
+          }
+          break;
+
+        case CODE_LENGTH_CONFIG_DISPLAY :
+          codeLengthConfigDisplay();
+          specificConfig();
+          currentDisplay = READY_TO_START_DISPLAY;
+          break;
+
+        // Begin game
+        case READY_TO_START_DISPLAY :
+          readyToStartDisplay();
+          currentDisplay = ENTER_CODE_CONFIG_DISPLAY;
+          return;
+              
+        // Error cases    
+        case CODE_ERROR_DISPLAY :
+          codeErrorDisplay();
+          currentDisplay = previousDisplay;
+          break;
+    }
+  }
 }
 
 void setup(){
@@ -343,96 +693,9 @@ void setup(){
    
    pinMode(KEY_PIN, INPUT); // Set the key pin as input
    
-   lcd.begin(LCD_LINE_LENGTH, LCD_NB_LINES);               // start the library
-   lcd.setCursor(0,0);             // set the LCD cursor   position 
-   lcd.print("Push the buttons");  // print a simple message on the LCD
+   lcd.begin(LCD_LINE_LENGTH, LCD_NB_LINES); // Start the LCD
 }
 
-
-int theBuffer;
-
 void loop(){
-  // Read the strings that are sent via Bluetooth
-  //if (Serial.available())  {
-  // command = Serial.readString();
-  //}
-  
-  switch (currentDisplay)
-  {
-    // General cases
-    case ENTER_CONFIG_CODE_DISPLAY :
-      theBuffer = enterConfigCodeDisplay();
-      if (theBuffer == 1) currentDisplay = MANUAL_OR_BLUETOOTH_CONFIG_DISPLAY;
-      else
-      {
-        previousDisplay = currentDisplay;
-        currentDisplay = WRONG_CODE_DISPLAY;
-      }
-      break;
-    case MANUAL_OR_BLUETOOTH_CONFIG_DISPLAY :
-      theBuffer = manualOrBluetoothDisplay();
-      if (theBuffer == 1) currentDisplay = GAME_MODE_CONFIG_DISPLAY;
-      else if (theBuffer == 2) currentDisplay = BLUETOOTH_CONFIG_DISPLAY;
-      break;
-
-    case BLUETOOTH_CONFIG_DISPLAY :
-      theBuffer = bluetoothConfigDisplay();
-      if (theBuffer == 1) currentDisplay = READY_TO_START_DISPLAY;
-      else currentDisplay = MANUAL_OR_BLUETOOTH_CONFIG_DISPLAY;
-      break;
-
-    case GAME_MODE_CONFIG_DISPLAY :
-      theBuffer = gameModeConfigDisplay();
-      currentDisplay = ENTER_CONFIG_CODE_DISPLAY; // TODO Write transitions
-      break;
-    
-    case GAME_DURATION_CONFIG_DISPLAY :
-      break;
-        
-    case TIME_FOR_DEFUSING_CONFIG_DISPLAY :
-      break;
-    
-    case KEY_CODE_CONFIG_DISPLAY :
-      break;
-    
-    case CODE_LENGTH_CONFIG_DISPLAY :
-      break;
-    
-    case CODE_DEFINITION_CONFIG_DISPLAY :
-      break;
-    
-    case READY_TO_START_DISPLAY :
-      break;
-    
-    case WAITING_FOR_CODE_DISPLAY :
-      break;
-    
-    case WAITING_FOR_KEY_DISPLAY :
-      break;
-    
-    case WAITING_FOR_BOTH_DISPLAY :
-      break;
-    
-    case BOX_OPENED_DISPLAY :
-      break;
-    
-    case END_OF_GAME_DISPLAY :
-      break;
-          
-    // Error cases
-    case WRONG_CODE_LENGTH_DISPLAY :
-      wrongCodeLengthDisplay();
-      currentDisplay = previousDisplay;
-      break;
-
-    case WRONG_CODE_DISPLAY :
-      wrongCodeDisplay();
-      currentDisplay = previousDisplay;
-      break;
-      
-    case WRONG_DURATION_VALUE_DISPLAY :
-      wrongDurationValueDisplay();
-      currentDisplay = previousDisplay;
-      break;
-  }
+  commonConfig();
 }
