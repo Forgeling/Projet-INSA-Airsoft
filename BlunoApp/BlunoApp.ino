@@ -26,6 +26,7 @@ int gameMode = ANTI_TERRO_A;
 
 // Game duration
 #define MIN_GAME_DURATION 5
+#define DURATION_DIGITS 2
 int gameDuration = MIN_GAME_DURATION;
 
 // Key/Code choice
@@ -37,6 +38,16 @@ int keyOrCode = KEY_OR_CODE;
 
 // Game code
 String gameCode = "";
+
+// Time for defusing
+#define MIN_DEFUSE_TIME 1
+int defuseTime = MIN_DEFUSE_TIME;
+
+// Teams
+#define MAX_NB_TEAMS 8
+#define MIN_NB_TEAMS 2
+#define NB_TEAMS_DIGITS 1
+int nbOfTeams = MIN_NB_TEAMS;
 
 //------------------------------------------------------------------------------------------
 // LCD Configuration and methods
@@ -85,11 +96,11 @@ String command = "";
 // set key pin:
 #define KEY_PIN 15
 
-int armedKeyState;
+bool armedKeyState;
 
-int readKeyState ()
+bool isKeyDefused ()
 {
-  return digitalRead(KEY_PIN);
+  return (digitalRead(KEY_PIN) != armedKeyState);
 }
 
 //------------------------------------------------------------------------------------------
@@ -225,7 +236,7 @@ int readDuration (int minDuration)
   {
     keyPressed = myKeypad.getKey();
     
-    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < 2)
+    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < DURATION_DIGITS)
     {
       Serial.println(keyPressed);
       if (charCounter == 0) minutes = keyPressed;
@@ -276,18 +287,18 @@ int readDuration (int minDuration)
 // Config displays
 #define ENTER_CODE_CONFIG_DISPLAY 0//
 #define MANUAL_OR_BLUETOOTH__CONFIG_DISPLAY 1//
-#define WAITING_BLUETOOTH_CONFIG_DISPLAY 2//~
+#define WAITING_BLUETOOTH_CONFIG_DISPLAY 2//
 #define GAME_MODE_CONFIG_DISPLAY 3//
 #define GAME_DURATION_CONFIG_DISPLAY 4//
 #define KEY_CODE_CONFIG_DISPLAY 5//
 #define CODE_LENGTH_CONFIG_DISPLAY 6//
-#define CODE_DEFINITION_CONFIG_DISPLAY 7
-#define TIME_FOR_DEFUSING_CONFIG_DISPLAY 8
-#define NUMBER_OF_TEAMS_CONFIG_DISPLAY 9
-#define RANDOM_CODE_GENERATION_DISPLAY 10
+#define CODE_DEFINITION_CONFIG_DISPLAY 7//
+#define TIME_FOR_DEFUSING_CONFIG_DISPLAY 8//
+#define NUMBER_OF_TEAMS_CONFIG_DISPLAY 9//
+#define RANDOM_CODE_GENERATION_DISPLAY 10//
 
 // Begin/end diplays
-#define READY_TO_START_DISPLAY 100
+#define READY_TO_START_DISPLAY 100//
 #define END_OF_GAME_DISPLAY 101
 
 // Ingame displays
@@ -300,8 +311,8 @@ int readDuration (int minDuration)
 #define WAITING_FOR_EITHER_ACTIVATION_INGAME_DISPLAY 206
 
 // Errors
-#define CODE_LENGTH_ERROR_DISPLAY 300
-#define CODE_ERROR_DISPLAY 301
+#define CODE_LENGTH_ERROR_DISPLAY 300//
+#define CODE_ERROR_DISPLAY 301//
 #define BOX_OPENED_ERROR_DISPLAY 302
 
 // Variables to keep track of what is being displayed
@@ -331,7 +342,7 @@ int enterCodeConfigDisplay ()
 }
 
 /**
- * Manual Or Bluetooth Config Display
+ * Manual Or Bluetooth Config DisplayWAITING_BLUETOOTH_CONFIG_DISPLAY
  */
 int manualOrBluetoothConfigDisplay ()
 {
@@ -510,15 +521,65 @@ void codeDefinitionConfigDisplay ()
 /**
  * Time For Defusing Config Display
  */
+void timeForDefusingConfigDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Defuse time :");
+  defuseTime = readDuration(MIN_DEFUSE_TIME);
+}
 
 /**
  * Number Of Teams Config Display
  */
+void numberOfTeamsConfigDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("How many teams :");
+  nbOfTeams = readNumber(NB_TEAMS_DIGITS, MIN_NB_TEAMS, MAX_NB_TEAMS);
+}
 
 /**
  * Random Code Generation Display
  */
+void randomCodeGenerationDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Please unplug A1,");
+  lcd.setCursor(0,1);
+  lcd.print("then press D !");
 
+  while(myKeypad.getKey() != 'D'){}
+
+  // Initialize the random seed (must debranch A1 before startin the system!)
+  randomSeed(analogRead(1));
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Please replug A1,");
+  lcd.setCursor(0,1);
+  lcd.print("then press D !");
+
+  while(myKeypad.getKey() != 'D'){}
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Code is :");
+  lcd.setCursor(0,1);
+  
+  gameCode = "";
+  for (int i = 0; i < prefCodeLength; i++)
+  {
+    // Add a random number from 0 to 9 to the code string
+    gameCode += (char) random(48, 58);
+  }
+
+  lcd.print(gameCode);
+
+  while(myKeypad.getKey() != 'D'){}
+}
 
 //------------------------------------------------------------------------------------------
 // Begin/End Displays Methods and Functions
@@ -533,16 +594,72 @@ void readyToStartDisplay ()
   lcd.print("Ready ! Press");
   lcd.setCursor(0,1);
   lcd.print("D to Start !");
-  char pressedKey;
-  while(pressedKey != 'D')
+  
+  while(myKeypad.getKey() != 'D'){}
+}
+
+//------------------------------------------------------------------------------------------
+// Ingame Displays Methods and Functions
+//------------------------------------------------------------------------------------------
+/** 
+ * Waiting for code ingame display
+ */
+int waitingForCodeIngameDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Enter code :");
+
+  if (readCode() == gameCode)
   {
-    pressedKey = myKeypad.getKey();
-    if (pressedKey != NO_KEY)
-    {
-      Serial.println("out");
-    }
+    return 1;
+  }
+  else
+  {
+    return 0;
   }
 }
+
+/**
+ * Waiting for key ingame display
+ */
+int waitingForKeyIngameDisplay ()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("To turn off,");
+  lcd.setCursor(0,1);
+  lcd.print("turn the key !");
+
+  if (readCode() == gameCode)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+/**
+ * Waiting for either ingame display
+ */
+
+/**
+ * Waiting for team number ingame display
+ */
+
+/**
+ * Waiting for code activation ingame display
+ */
+
+/**
+ * Waiting for key activation ingame display
+ */
+
+/**
+ * Waiting for either activation ingame display
+ */
 
 //------------------------------------------------------------------------------------------
 // Error Displays Methods and Functions
