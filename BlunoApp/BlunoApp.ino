@@ -1,68 +1,45 @@
 #include <LiquidCrystal.h>
 #include <Keypad.h>
 
-//------------------------------------------------------------------------------------------
-// Configuration variables
-//------------------------------------------------------------------------------------------
-// LCD Definition
-#define LCD_LINE_LENGTH 16
-#define LCD_NB_LINES 2
+#include "Config.h"
 
-// Secret code to trigger the configuration mode
-const String CONFIG_CODE = "1337";
+//------------------------------------------------------------------------------
+// Hardware initialization
+//------------------------------------------------------------------------------
+// LCD Screen
+LiquidCrystal lcd(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN,LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 
-// Acceptable code lengths
-#define MIN_CODE_LENGTH 1
-#define MAX_CODE_LENGTH LCD_LINE_LENGTH
-#define NB_DIGITS_CODE_LENGTH 2
-int prefCodeLength = MIN_CODE_LENGTH;
+// Keypad
+Keypad myKeypad= Keypad(makeKeymap(keymap), rowPins, colPins, NB_ROWS, NB_COLS);
 
-// Game modes
-const int ANTI_TERRO_A = (int) '1';
-const int ANTI_TERRO_D = (int) '2';
-const int CAPTURE = (int) '3';
-const int DEFUSE = (int) '4';
+//------------------------------------------------------------------------------
+// Global variables
+//------------------------------------------------------------------------------
+int ingameCodeLength = MIN_CODE_LENGTH;
+
 int gameMode = ANTI_TERRO_A;
 
-// Game duration
-#define MIN_GAME_DURATION 1
-#define DURATION_DIGITS 2
 int gameDuration = MIN_GAME_DURATION;
 
-// Key/Code choice
-const int KEY_ONLY = (int) '1';
-const int CODE_ONLY = (int) '2';
-const int KEY_OR_CODE = (int) '3';
-const int KEY_AND_CODE = (int) '4';
 int keyOrCode = KEY_OR_CODE;
 
-// Game code
-String gameCode = "";
+String gameCode = ""; // Game code
 
-// Time for defusing
-#define MIN_DEFUSE_DURATION 1
 int defuseDuration = MIN_DEFUSE_DURATION;
 
-// Teams
-#define MAX_NB_TEAMS 8
-#define MIN_NB_TEAMS 2
-#define NB_TEAMS_DIGITS 1
 int nbOfTeams = MIN_NB_TEAMS;
+
 int currentTeamNumber = 0;
 
-// Key deactivation message
-const String KEY_DEACTIVATION = "KEY_DEACTIVATION";
-
-// Endgame string
-const String ENDGAME_STRING = "ENDGAME_STRING";
 bool gameGoingOn = false;
 
-//------------------------------------------------------------------------------------------
+int currentDisplay = ENTER_CODE_CONFIG_DISPLAY; // Variable to determine what is to be displayed
+
+String bluetoothCommand = "";
+
+//------------------------------------------------------------------------------
 // Photosensor Configuration and methods
-//------------------------------------------------------------------------------------------
-// set key pin:
-#define PHOTOSENSOR_PIN 1
-#define PHOTOSENSOR_THRESHOLD 300
+//------------------------------------------------------------------------------
 
 bool isBoxOpen ()
 {
@@ -70,60 +47,18 @@ bool isBoxOpen ()
   return false;
 }
 
-//------------------------------------------------------------------------------------------
-// LCD Configuration and methods
-//------------------------------------------------------------------------------------------
-
-LiquidCrystal lcd(8, 9, 4, 5, 6, 7);           // select the pins used on the LCD panel
-
-// define some values used by the panel and buttons
-int lcd_key     = 0;
-int adc_key_in  = 0;
-
-#define btnRIGHT  0
-#define btnUP     1
-#define btnDOWN   2
-#define btnLEFT   3
-#define btnSELECT 4
-#define btnNONE   5
-
-int readLCDButtons(){               // read the buttons
-    adc_key_in = analogRead(0);       // read the value from the sensor
-
-    // my buttons when read are centered at these values: 0, 144, 329, 504, 741
-    // we add approx 50 to those values and check to see if we are close
-    // We make this the 1st option for speed reasons since it will be the most likely result
-
-    if (adc_key_in > 1000) return btnNONE;
-
-    // For V1.1 us this threshold
-    if (adc_key_in < 50)   return btnRIGHT;
-    if (adc_key_in < 250)  return btnUP;
-    if (adc_key_in < 450)  return btnDOWN;
-    if (adc_key_in < 650)  return btnLEFT;
-    if (adc_key_in < 850)  return btnSELECT;
-
-    return btnNONE;                // when all others fail, return this.
-}
-
-//------------------------------------------------------------------------------------------
-// Bluetooth Configuration and methods
-//------------------------------------------------------------------------------------------
-String command = "";
-
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Key Configuration and methods
-//------------------------------------------------------------------------------------------
-// set key pin:
-#define KEY_PIN 2
+//------------------------------------------------------------------------------
 
 bool readKeyState ()
 {
   return digitalRead(KEY_PIN);
 }
-//------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
 // Time Management Methods
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 long int gameStartingTime;
 long int gameEndingTime;
 long int explosionStartingTime;
@@ -131,22 +66,27 @@ long int explosionEndingTime;
 bool gameDurationPassed = false;
 bool explosionDurationPassed = false;
 
+long int timeIs()
+{
+  return millis()/1000;
+}
+
 void startGameTimer ()
 {
-  gameStartingTime = millis()/1000;
+  gameStartingTime = timeIs();
   gameEndingTime = gameStartingTime + gameDuration * 60;
   gameGoingOn = true;
 }
 
 void startExplosionTimer ()
 {
-  explosionStartingTime = millis()/1000;
+  explosionStartingTime = timeIs();
   gameEndingTime = explosionStartingTime + gameDuration * 60;
 }
 
 bool isGameEndingTimeReached ()
 {
-  if (gameEndingTime <= millis()/1000)
+  if (gameEndingTime <= timeIs())
   {
     gameDurationPassed = true;
     return gameDurationPassed;
@@ -160,7 +100,7 @@ bool isGameEndingTimeReached ()
 
 bool isExplosionEndingTimeReached ()
 {
-  if (explosionEndingTime <= millis()/1000)
+  if (explosionEndingTime <= timeIs())
   {
     explosionDurationPassed = true;
     return explosionDurationPassed;
@@ -179,7 +119,7 @@ bool displayGameTimeLeft ()
     lcd.setCursor(11, 0);
     lcd.print("      ");
     lcd.setCursor(11, 0);
-    long int secondsLeft = gameEndingTime - millis()/1000;
+    long int secondsLeft = gameEndingTime - timeIs();
     long int minutesLeft = secondsLeft / 60;
     secondsLeft = secondsLeft % 60;
     lcd.print(minutesLeft);
@@ -198,7 +138,7 @@ bool displayExplosionTimeLeft ()
     lcd.setCursor(11, 0);
     lcd.print("      ");
     lcd.setCursor(11, 0);
-    long int secondsLeft = explosionEndingTime - millis()/1000;
+    long int secondsLeft = explosionEndingTime - timeIs();
     long int minutesLeft = secondsLeft / 60;
     secondsLeft = secondsLeft % 60;
     lcd.print(minutesLeft);
@@ -210,27 +150,9 @@ bool displayExplosionTimeLeft ()
   else return true;
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Pad Configuration and methods
-//------------------------------------------------------------------------------------------
-const byte numRows= 4; //number of rows on the keypad
-const byte numCols= 4; //number of columns on the keypad
-
-//keymap defines the key pressed according to the row and columns just as appears on the keypad
-char keymap[numRows][numCols]=
-{
-{'1', '2', '3', 'A'},
-{'4', '5', '6', 'B'},
-{'7', '8', '9', 'C'},
-{'*', '0', '#', 'D'}
-};
-
-//Code that shows the the keypad connections to the arduino terminals
-byte rowPins[numRows] = {13,12,11,3}; //Rows 0 to 3
-byte colPins[numCols]= {16,17,18,19}; //Columns 0 to 3
-
-//initializes an instance of the Keypad class
-Keypad myKeypad= Keypad(makeKeymap(keymap), rowPins, colPins, numRows, numCols);
+//------------------------------------------------------------------------------
 
 String readCodeAndKey (int expectedLength = MAX_CODE_LENGTH)
 {
@@ -241,7 +163,7 @@ String readCodeAndKey (int expectedLength = MAX_CODE_LENGTH)
   // Variables for key read
   bool currentKeyState = readKeyState();
   bool previousKeyState = currentKeyState;
-  
+
   while(true)
   {
     if (gameGoingOn)
@@ -410,48 +332,9 @@ int readDuration (int minDuration)
   }
 }
 
-//------------------------------------------------------------------------------------------
-// Displays
-//------------------------------------------------------------------------------------------
-// Config displays
-#define ENTER_CODE_CONFIG_DISPLAY 0
-#define MANUAL_OR_BLUETOOTH_CONFIG_DISPLAY 1
-#define WAITING_BLUETOOTH_CONFIG_DISPLAY 2
-#define GAME_MODE_CONFIG_DISPLAY 3
-#define GAME_DURATION_CONFIG_DISPLAY 4
-#define KEY_CODE_CONFIG_DISPLAY 5
-#define CODE_LENGTH_CONFIG_DISPLAY 6
-#define CODE_DEFINITION_CONFIG_DISPLAY 7
-#define TIME_FOR_DEFUSING_CONFIG_DISPLAY 8
-#define NUMBER_OF_TEAMS_CONFIG_DISPLAY 9
-#define RANDOM_CODE_GENERATION_DISPLAY 10
-#define KEY_CONFIRMATION_CONFIG_DISPLAY 11
-
-// Begin/end diplays
-#define READY_TO_START_DISPLAY 100
-#define NO_ONES_WIN_END_DISPLAY 101
-#define TERROS_WIN_END_DISPLAY 102
-#define ANTIS_WIN_END_DISPLAY 103
-#define TEAM_NUMBER_WIN_END_DISPLAY 104
-
-// Ingame displays
-#define WAITING_FOR_CODE_INGAME_DISPLAY 200
-#define WAITING_FOR_KEY_INGAME_DISPLAY 201
-#define WAITING_FOR_EITHER_INGAME_DISPLAY 202
-#define WAITING_FOR_TEAM_NUMBER_INGAME_DISPLAY 203
-#define WAITING_FOR_CODE_ACTIVATION_INGAME_DISPLAY 204
-#define WAITING_FOR_KEY_DEACTIVATION_INGAME_DISPLAY 205
-#define WAITING_FOR_EITHER_ACTIVATION_INGAME_DISPLAY 206
-
-// Errors
-#define BOX_OPENED_ERROR_DISPLAY 300
-
-// Variables to keep track of what is being displayed
-int currentDisplay = ENTER_CODE_CONFIG_DISPLAY;
-
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Config Displays Methods and Functions
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Enter Code Config Display
  */
@@ -505,9 +388,9 @@ int bluetoothConfigDisplay ()
   while (true)
   {
     if (Serial.available())  {
-      command = Serial.readString();
-      if (command == "VALID_CONFIG") return 1;
-      else if (command == "CANCEL_CONFIG") return 0;
+      bluetoothCommand = Serial.readString();
+      if (bluetoothCommand == "VALID_CONFIG") return 1;
+      else if (bluetoothCommand == "CANCEL_CONFIG") return 0;
     }
   }
 }
@@ -518,7 +401,7 @@ int bluetoothConfigDisplay ()
 void gameModeConfigDisplay ()
 {
   int scroll = 0;
-  long int currentTime = millis()/1000;
+  long int currentTime = timeIs();
   long int previousTime = currentTime;
   char keyPressed;
 
@@ -551,7 +434,7 @@ void gameModeConfigDisplay ()
         return;
     }
 
-    currentTime = millis()/1000;
+    currentTime = timeIs();
 
     // Every second, scroll the display
     if (currentTime - previousTime >= 2)
@@ -634,7 +517,7 @@ void codeLengthConfigDisplay ()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Code length :");
-  prefCodeLength = readNumber(NB_DIGITS_CODE_LENGTH, MIN_CODE_LENGTH, MAX_CODE_LENGTH);
+  ingameCodeLength = readNumber(NB_DIGITS_FOR_CODE_LENGTH, MIN_CODE_LENGTH, MAX_CODE_LENGTH);
 }
 
 /**
@@ -645,7 +528,7 @@ void codeDefinitionConfigDisplay ()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("New code :");
-  gameCode = readCodeAndKey(prefCodeLength);
+  gameCode = readCodeAndKey(ingameCodeLength);
 }
 
 /**
@@ -700,7 +583,7 @@ void randomCodeGenerationDisplay ()
   lcd.setCursor(0,1);
 
   gameCode = "";
-  for (int i = 0; i < prefCodeLength; i++)
+  for (int i = 0; i < ingameCodeLength; i++)
   {
     // Add a random number from 0 to 9 to the code string
     gameCode += (char) random(48, 58);
@@ -732,9 +615,9 @@ void keyConfirmationConfigDisplay ()
   }
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Begin/End Displays Methods and Functions
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Ready To Start Display
  */
@@ -809,9 +692,9 @@ void teamNumberWinEndDisplay ()
   while(myKeypad.getKey() != 'D'){}
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Ingame Displays Methods and Functions
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * Waiting for code ingame display
  */
@@ -825,7 +708,7 @@ void waitingForCodeIngameDisplay ()
 
   while (readCode != gameCode)
   {
-    readCode = readCodeAndKey(prefCodeLength);
+    readCode = readCodeAndKey(ingameCodeLength);
     if (readCode == ENDGAME_STRING) break;
     else if (readCode == gameCode) break;
     else
@@ -869,7 +752,7 @@ int waitingForEitherIngameDisplay ()
   lcd.setCursor(0,0);
   lcd.print("Key/code :");
 
-  String returnCode = readCodeAndKey(prefCodeLength);
+  String returnCode = readCodeAndKey(ingameCodeLength);
 
   while (true)
   {
@@ -878,7 +761,7 @@ int waitingForEitherIngameDisplay ()
       return 0;
     }
     else if (returnCode == KEY_DEACTIVATION)
-    { 
+    {
       return 1;
     }
     else
@@ -888,7 +771,7 @@ int waitingForEitherIngameDisplay ()
       delay(1000);
       lcd.setCursor(0,1);
       lcd.print("                ");
-      returnCode = readCodeAndKey(prefCodeLength);
+      returnCode = readCodeAndKey(ingameCodeLength);
     }
   }
 }
@@ -912,7 +795,7 @@ void waitingForCodeActivationIngameDisplay ()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("New Code :");
-  gameCode = readCodeAndKey(prefCodeLength);
+  gameCode = readCodeAndKey(ingameCodeLength);
 }
 
 /**
@@ -945,7 +828,7 @@ int waitingForEitherActivationIngameDisplay ()
   lcd.setCursor(0,0);
   lcd.print("Key/code :");
 
-  String returnCode = readCodeAndKey(prefCodeLength);
+  String returnCode = readCodeAndKey(ingameCodeLength);
 
   if (returnCode == KEY_DEACTIVATION) return 1;
   else
@@ -955,9 +838,9 @@ int waitingForEitherActivationIngameDisplay ()
   }
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Error Displays Methods and Functions
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 /**
  * Box Opened Error Display
@@ -971,9 +854,9 @@ void boxOpenedErrorDisplay ()
   lcd.print("PLEASE RESET !");
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Config Methods
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void antiTerroAConfig ()
 {
 
@@ -983,7 +866,7 @@ void antiTerroDConfig ()
 {
   if (keyOrCode == KEY_ONLY) currentDisplay = KEY_CONFIRMATION_CONFIG_DISPLAY;
   else currentDisplay = CODE_DEFINITION_CONFIG_DISPLAY;
-  
+
   while (true)
   {
     switch (currentDisplay)
@@ -993,7 +876,7 @@ void antiTerroDConfig ()
         if (keyOrCode == CODE_ONLY) return;
         else currentDisplay = KEY_CONFIRMATION_CONFIG_DISPLAY;
         break;
-        
+
       case KEY_CONFIRMATION_CONFIG_DISPLAY :
         keyConfirmationConfigDisplay();
         return;
@@ -1091,9 +974,9 @@ void commonConfig ()
   }
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Game Mode Methods
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 void antiTerroAGame ()
 {
@@ -1119,7 +1002,7 @@ void antiTerroDGame ()
   }
 
   int displayReturnValue;
-  
+
   while (true)
   {
     switch (currentDisplay)
@@ -1127,7 +1010,7 @@ void antiTerroDGame ()
       case WAITING_FOR_CODE_INGAME_DISPLAY :
         waitingForCodeIngameDisplay();
         return;
-        
+
       case WAITING_FOR_KEY_INGAME_DISPLAY :
         waitingForKeyIngameDisplay();
         return;
@@ -1146,12 +1029,12 @@ void antiTerroDGame ()
 
 void captureGame ()
 {
-  
+
 }
 
 void defuseGame ()
 {
-  
+
 }
 
 void commonGame ()
@@ -1173,13 +1056,13 @@ void commonGame ()
   }
 }
 
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // End Mode Methods
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void commonEnd ()
 {
   gameGoingOn = false;
-  
+
   switch (gameMode)
   {
     case ANTI_TERRO_A :
@@ -1187,12 +1070,10 @@ void commonEnd ()
     case ANTI_TERRO_D :
       if (gameDurationPassed)
       {
-        Serial.println("TERROS_WIN_END_DISPLAY");
         currentDisplay = TERROS_WIN_END_DISPLAY;
       }
       else
       {
-        Serial.println("ANTIS_WIN_END_DISPLAY")
         currentDisplay = ANTIS_WIN_END_DISPLAY;
       }
       break;
@@ -1222,17 +1103,27 @@ void commonEnd ()
   }
 }
 
+//------------------------------------------------------------------------------
+// Arduino Setup and Loop methods (Entry point for the program)
+//------------------------------------------------------------------------------
 void setup(){
-   Serial.begin(115200);  //initial the Serial (for Bluetooth connection)
+  // Start serial communication for the Bluetooth feature
+  Serial.begin(115200);
 
-   pinMode(KEY_PIN, INPUT); // Set the key pin as input
+  // Set the KEY_PIN as an input
+  pinMode(KEY_PIN, INPUT);
 
-   lcd.begin(LCD_LINE_LENGTH, LCD_NB_LINES); // Start the LCD
+  // Start the LCD Screen
+  lcd.begin(LCD_LINE_LENGTH, LCD_NB_LINES);
 }
 
 void loop(){
+  // Configuration phase
   commonConfig();
+
+  // Ingame phase
   commonGame();
+
+  // EndGame phase
   commonEnd();
 }
-
