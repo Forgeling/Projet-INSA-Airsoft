@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/darkBlue"
+    android:textColor="@color/white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/GameMode"
+        style="@style/AppTheme"
+        android:text="@string/gameMode"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:gravity="center_horizontal|center_vertical"
+        />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/GameModeRD"
+        android:paddingBottom="10dp"
+        android:layout_below="@id/GameMode">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/AppTheme"
+            android:id="@+id/ModeAAT"
+            android:text="@string/mod1"
+            android:checked="true" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/AppTheme"
+            android:id="@+id/ModeDAT"
+            android:text="@string/mod2"
+            />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/AppTheme"
+            android:id="@+id/ModeDT"
+            android:text="@string/mod3"
+            />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/AppTheme"
+            android:id="@+id/ModeC"
+            android:text="@string/mod4"
+            />
+    </RadioGroup>
+
+    <ImageView
+        android:src="@android:drawable/divider_horizontal_textfield"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="2dp"
+        android:paddingTop="2dp"
+        android:layout_below="@id/GameModeRD"
+        android:id="@+id/separator1"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/timeText"
+        android:text="@string/time"
+        style="@style/AppTheme"
+        android:layout_below="@id/separator1"
+        android:layout_marginBottom="5dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal|center_vertical"
+        />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:id="@+id/textTime"
+        style="@style/AppTheme"
+        android:background="@color/white"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:hint="@string/time"
+        android:layout_below="@id/timeText"
+        android:inputType="number"
+        android:layout_marginBottom="15dp"
+        />
+
+    <ImageView
+        android:src="@android:drawable/divider_horizontal_textfield"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="2dp"
+        android:paddingTop="2dp"
+        android:layout_below="@id/textTime"
+        android:id="@+id/separator2"/>
+
+    <TextView
+        android:id="@+id/DefuseModeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/DefusingMode"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal"
+        android:layout_below="@id/separator2"
+        />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/DefusingModeK"
+        android:text="@string/KeyMod"
+        android:gravity="center_vertical"
+        style="@style/AppTheme"
+        android:paddingBottom="10dp"
+        android:layout_below="@id/DefuseModeTitle"
+        android:checked="false"
+        />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/DefusingModePassword"
+        android:text="@string/passwordMod"
+        android:gravity="center_vertical|end|center_horizontal"
+        android:paddingBottom="10dp"
+        style="@style/AppTheme"
+        android:layout_below="@+id/DefusingModeK"
+        android:textAlignment="center"
+        android:checked="false"
+        />
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/inputPassword"
+        android:id="@+id/inputPassword"
+        android:textColor="@color/black"
+        android:layout_alignBottom="@id/DefusingModePassword"
+        android:layout_toRightOf="@id/DefusingModePassword"
+        android:layout_alignParentRight="true"
+        style="@style/AppTheme"
+        android:inputType="number"
+        android:gravity="center_horizontal"
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/white"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/DefuseTime"
+        android:text="@string/DefuseTime"
+        style="@style/AppTheme"
+        android:layout_below="@id/inputPassword"
+        android:layout_marginBottom="5dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal|center_vertical"
+        />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        style="@style/AppTheme"
+        android:textColor="@color/black"
+        android:id="@+id/DefuseTextTime"
+        android:background="@color/white"
+        android:layout_centerHorizontal="true"
+        android:hint="@string/DefuseTime"
+        android:layout_below="@id/DefuseTime"
+        android:inputType="number"
+        android:layout_marginBottom="10dp"
+        />
+
+    <ImageView
+        android:src="@android:drawable/divider_horizontal_textfield"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="2dp"
+        android:paddingTop="2dp"
+        android:layout_below="@id/DefuseTextTime"
+        android:id="@+id/separator3"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/nbTeam"
+        style="@style/AppTheme"
+        android:text="@string/team"
+        android:gravity="center_horizontal"
+        android:layout_below="@id/separator3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="5dp"
+        />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/teamNumber"
+        android:id="@+id/equipNumber"
+        android:background="@color/white"
+        android:layout_below="@id/nbTeam"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="15dp"
+        style="@style/AppTheme"
+        android:inputType="number"
+        />
+
+    <ImageView
+        android:src="@android:drawable/divider_horizontal_textfield"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="2dp"
+        android:paddingTop="2dp"
+        android:layout_below="@+id/equipNumber"
+        android:id="@+id/separator4"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:id="@+id/ButtonLayout"
+        android:layout_below="@id/separator4">
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/save"
+            android:layout_margin="10dp"
+            />
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/send"
+            android:layout_margin="10dp"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

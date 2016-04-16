@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal|center_vertical"
+    android:background="@color/darkBlue"
+    style="@style/AppTheme"
+    >
+
+    <Button
+        android:id="@+id/shortMatch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/shortMatch"
+        android:textColorHint="@color/white"
+        android:layout_alignRight="@+id/mediumMatch"
+        android:layout_alignLeft="@id/mediumMatch"
+        android:onClick="setDuration"
+        />
+
+    <Button
+        android:id="@id/mediumMatch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/mediumMatch"
+        android:textColorHint="@color/white"
+        android:layout_below="@id/shortMatch"
+        android:layout_margin="15dp"
+        android:onClick="setDuration"
+        />
+
+    <Button
+        android:id="@+id/longMatch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/longMatch"
+        android:textColorHint="@color/white"
+        android:layout_below="@id/mediumMatch"
+        android:layout_alignRight="@id/mediumMatch"
+        android:layout_alignLeft="@id/mediumMatch"
+        android:onClick="setDuration"
+    />
+
+</RelativeLayout>

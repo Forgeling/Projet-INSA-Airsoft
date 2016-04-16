@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/darkBlue"
+    android:gravity="center_vertical|center_horizontal">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeAAT"
+        android:hint="@string/mod1"
+        android:layout_alignRight="@+id/ButtonModeDAT"
+        android:layout_alignLeft="@id/ButtonModeDAT"
+        android:onClick="setConfig"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@id/ButtonModeDAT"
+        android:hint="@string/mod2"
+        android:layout_below="@id/ButtonModeAAT"
+        android:onClick="setConfig"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeC"
+        android:hint="@string/mod3"
+        android:layout_below="@id/ButtonModeDAT"
+        android:layout_alignRight="@id/ButtonModeDAT"
+        android:layout_alignLeft="@id/ButtonModeDAT"
+        android:onClick="setConfig"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeDT"
+        android:hint="@string/mod4"
+        android:layout_below="@id/ButtonModeC"
+        android:layout_alignLeft="@id/ButtonModeC"
+        android:layout_alignRight="@id/ButtonModeC"
+        android:onClick="setConfig"
+    />
+
+
+</RelativeLayout>
