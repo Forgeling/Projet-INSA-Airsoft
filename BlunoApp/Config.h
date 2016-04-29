@@ -54,6 +54,11 @@ byte colPins[NB_COLS]= {COL_0,COL_1,COL_2,COL_3};
 //------------------------------------------------------------------------------
 // Game Configuration constantss
 //------------------------------------------------------------------------------
+// Pad input types
+const char CODE = 0;
+const char NUMBER = 1;
+const char DURATION = 2;
+
 // Secret code to authorize the start of the configuration phase
 const String CONFIG_CODE = "1337";
 

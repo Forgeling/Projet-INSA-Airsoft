@@ -10,7 +10,7 @@
 LiquidCrystal lcd(LCD_RS_PIN, LCD_ENABLE_PIN, LCD_D4_PIN,LCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
 
 // Keypad
-Keypad myKeypad= Keypad(makeKeymap(keymap), rowPins, colPins, NB_ROWS, NB_COLS);
+Keypad myKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, NB_ROWS, NB_COLS);
 
 //------------------------------------------------------------------------------
 // Global variables
@@ -23,7 +23,7 @@ int gameDuration = MIN_GAME_DURATION;
 
 int keyOrCode = KEY_OR_CODE;
 
-String gameCode = ""; // Game code
+String gameCode = "";
 
 int defuseDuration = MIN_DEFUSE_DURATION;
 
@@ -38,7 +38,7 @@ int currentDisplay = ENTER_CODE_CONFIG_DISPLAY; // Variable to determine what is
 String bluetoothCommand = "";
 
 //------------------------------------------------------------------------------
-// Photosensor Configuration and methods
+// Photosensor
 //------------------------------------------------------------------------------
 
 bool isBoxOpen ()
@@ -48,12 +48,195 @@ bool isBoxOpen ()
 }
 
 //------------------------------------------------------------------------------
-// Key Configuration and methods
+// User input
 //------------------------------------------------------------------------------
 
-bool readKeyState ()
+bool readKey ()
 {
   return digitalRead(KEY_PIN);
+}
+
+char readPad ()
+{
+  return myKeypad.getKey();
+}
+
+String readAndDisplayUserInput (int padInputType, bool doReadPad, bool doReadKey, int expectedLength = MAX_CODE_LENGTH)
+{
+  // Variables for pad read
+  String currentString = "";
+  char keyPressed;
+
+  // Variables for key read
+  bool currentKeyState = readKey();
+  bool previousKeyState = currentKeyState;
+
+  while(true)
+  {
+    if (gameGoingOn)
+    {
+      if (displayGameTimeLeft () == true) return ENDGAME_STRING;
+    }
+    // Code read and update
+    keyPressed = readPad();
+
+    if (keyPressed == 'D')
+    {
+      if (currentString.length() < expectedLength)
+      {
+        lcd.setCursor(0,1);
+        lcd.print("Invalid value   ");
+        delay(1000);
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+        lcd.setCursor(0,1);
+        lcd.print(currentString);
+      }
+      else break;
+    }
+    else if (keyPressed == 'C')
+    {
+      currentString.remove(currentString.length() - 1);
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(currentString);
+    }
+    else if (keyPressed != NO_KEY && currentString.length() < expectedLength)
+    {
+      currentString += keyPressed;
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(currentString);
+    }
+
+    currentKeyState = readKey();
+    if (currentKeyState != previousKeyState)
+    {
+      return KEY_DEACTIVATION;
+    }
+    else previousKeyState = currentKeyState;
+  }
+  return currentString;
+}
+
+int readNumber (int nbDigits, int minValue, int maxValue)
+{
+  String numberString = "";
+  int number;
+  // Initial display
+  lcd.setCursor(0,1);
+  lcd.print(numberString);
+
+  char keyPressed;
+
+  int charCounter = 0;
+
+  while(true)
+  {
+    keyPressed = readPad();
+
+    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < nbDigits)
+    {
+      numberString += keyPressed;
+      charCounter++;
+
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(numberString);
+    }
+    if (keyPressed == 'C' && charCounter > 0)
+    {
+      charCounter--;
+      numberString.remove(charCounter);
+
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(numberString);
+    }
+    if (keyPressed == 'D' && charCounter > 0)
+    {
+      number = numberString.toInt();
+      if (number >= minValue && number <= maxValue)
+      {
+        return number;
+      }
+      else
+      {
+        numberString = "";
+        charCounter = 0;
+        lcd.setCursor(0,1);
+        lcd.print("Invalid value   ");
+        delay(1000);
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+      }
+    }
+  }
+}
+
+int readDuration (int minDuration)
+{
+  String minutes = String(minDuration);
+  int duration = minDuration;
+  // Initial display
+  lcd.setCursor(0,1);
+  lcd.print(minutes);
+  lcd.print(" minutes");
+
+  char keyPressed;
+
+  int charCounter = 0;
+
+  while(true)
+  {
+    keyPressed = readPad();
+
+    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < DURATION_DIGITS)
+    {
+      if (charCounter == 0) minutes = keyPressed;
+      if (charCounter == 1) minutes += keyPressed;
+      charCounter++;
+
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(minutes);
+      lcd.print(" minutes");
+    }
+    if (keyPressed == 'C')
+    {
+      minutes = String(minDuration);
+      charCounter = 0;
+
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.setCursor(0,1);
+      lcd.print(minutes);
+      lcd.print(" minutes");
+    }
+    if (keyPressed == 'D')
+    {
+      duration = minutes.toInt();
+      if (duration >= minDuration)
+      {
+        return duration;
+      }
+      else
+      {
+        minutes = String(minDuration);
+        charCounter = 0;
+        lcd.setCursor(0,1);
+        lcd.print("                ");
+        lcd.setCursor(0,1);
+        lcd.print(minutes);
+        lcd.print(" minutes");
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -151,188 +334,6 @@ bool displayExplosionTimeLeft ()
 }
 
 //------------------------------------------------------------------------------
-// Pad Configuration and methods
-//------------------------------------------------------------------------------
-
-String readCodeAndKey (int expectedLength = MAX_CODE_LENGTH)
-{
-  // Variables for code read
-  String theCode = "";
-  char keyPressed;
-
-  // Variables for key read
-  bool currentKeyState = readKeyState();
-  bool previousKeyState = currentKeyState;
-
-  while(true)
-  {
-    if (gameGoingOn)
-    {
-      if (displayGameTimeLeft () == true) return ENDGAME_STRING;
-    }
-    // Code read and update
-    keyPressed = myKeypad.getKey();
-
-    if (keyPressed == 'D')
-    {
-      if (theCode.length() < expectedLength)
-      {
-        lcd.setCursor(0,1);
-        lcd.print("Invalid value   ");
-        delay(1000);
-        lcd.setCursor(0,1);
-        lcd.print("                ");
-        lcd.setCursor(0,1);
-        lcd.print(theCode);
-      }
-      else break;
-    }
-    else if (keyPressed == 'C')
-    {
-      theCode.remove(theCode.length() - 1);
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(theCode);
-    }
-    else if (keyPressed != NO_KEY && theCode.length() < expectedLength)
-    {
-      theCode += keyPressed;
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(theCode);
-    }
-
-    currentKeyState = readKeyState();
-    if (currentKeyState != previousKeyState)
-    {
-      return KEY_DEACTIVATION;
-    }
-    else previousKeyState = currentKeyState;
-  }
-  return theCode;
-}
-
-int readNumber (int nbDigits, int minValue, int maxValue)
-{
-  String numberString = "";
-  int number;
-  // Initial display
-  lcd.setCursor(0,1);
-  lcd.print(numberString);
-
-  char keyPressed;
-
-  int charCounter = 0;
-
-  while(true)
-  {
-    keyPressed = myKeypad.getKey();
-
-    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < nbDigits)
-    {
-      numberString += keyPressed;
-      charCounter++;
-
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(numberString);
-    }
-    if (keyPressed == 'C' && charCounter > 0)
-    {
-      charCounter--;
-      numberString.remove(charCounter);
-
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(numberString);
-    }
-    if (keyPressed == 'D' && charCounter > 0)
-    {
-      number = numberString.toInt();
-      if (number >= minValue && number <= maxValue)
-      {
-        return number;
-      }
-      else
-      {
-        numberString = "";
-        charCounter = 0;
-        lcd.setCursor(0,1);
-        lcd.print("Invalid value   ");
-        delay(1000);
-        lcd.setCursor(0,1);
-        lcd.print("                ");
-      }
-    }
-  }
-}
-
-int readDuration (int minDuration)
-{
-  String minutes = String(minDuration);
-  int duration = minDuration;
-  // Initial display
-  lcd.setCursor(0,1);
-  lcd.print(minutes);
-  lcd.print(" minutes");
-
-  char keyPressed;
-
-  int charCounter = 0;
-
-  while(true)
-  {
-    keyPressed = myKeypad.getKey();
-
-    if (keyPressed >= '0' && keyPressed <= '9' && charCounter < DURATION_DIGITS)
-    {
-      if (charCounter == 0) minutes = keyPressed;
-      if (charCounter == 1) minutes += keyPressed;
-      charCounter++;
-
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(minutes);
-      lcd.print(" minutes");
-    }
-    if (keyPressed == 'C')
-    {
-      minutes = String(minDuration);
-      charCounter = 0;
-
-      lcd.setCursor(0,1);
-      lcd.print("                ");
-      lcd.setCursor(0,1);
-      lcd.print(minutes);
-      lcd.print(" minutes");
-    }
-    if (keyPressed == 'D')
-    {
-      duration = minutes.toInt();
-      if (duration >= minDuration)
-      {
-        return duration;
-      }
-      else
-      {
-        minutes = String(minDuration);
-        charCounter = 0;
-        lcd.setCursor(0,1);
-        lcd.print("                ");
-        lcd.setCursor(0,1);
-        lcd.print(minutes);
-        lcd.print(" minutes");
-      }
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
 // Config Displays Methods and Functions
 //------------------------------------------------------------------------------
 /**
@@ -344,7 +345,7 @@ void enterCodeConfigDisplay ()
   lcd.setCursor(0,0);
   lcd.print("Config code :");
 
-  while (readCodeAndKey(CONFIG_CODE.length()) != CONFIG_CODE)
+  while (readAndDisplayUserInput(CODE, true, false, CONFIG_CODE.length()) != CONFIG_CODE)
   {
     lcd.setCursor(0,1);
     lcd.print("Invalid value   ");
@@ -368,7 +369,7 @@ int manualOrBluetoothConfigDisplay ()
   char keyPressed;
   while (true)
   {
-    keyPressed = myKeypad.getKey();
+    keyPressed = readPad();
     if (keyPressed == '1') return 1;
     else if (keyPressed == '2') return 2;
   }
@@ -415,7 +416,7 @@ void gameModeConfigDisplay ()
 
   while (true)
   {
-    keyPressed = myKeypad.getKey();
+    keyPressed = readPad();
 
     // Depending on the key pressed, choose mode
     switch (keyPressed)
@@ -489,7 +490,7 @@ void keyCodeConfigDisplay ()
 
   while (true)
   {
-    keyPressed = (int) myKeypad.getKey();
+    keyPressed = (int) readPad();
 
     // Depending on the key pressed, choose mode
     switch (keyPressed)
@@ -528,7 +529,7 @@ void codeDefinitionConfigDisplay ()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("New code :");
-  gameCode = readCodeAndKey(ingameCodeLength);
+  gameCode = readAndDisplayUserInput(CODE, true, false, ingameCodeLength);
 }
 
 /**
@@ -564,7 +565,7 @@ void randomCodeGenerationDisplay ()
   lcd.setCursor(0,1);
   lcd.print("then press D !");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 
   // Initialize the random seed (must debranch A1 before startin the system!)
   randomSeed(analogRead(1));
@@ -575,7 +576,7 @@ void randomCodeGenerationDisplay ()
   lcd.setCursor(0,1);
   lcd.print("then press D !");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 
   lcd.clear();
   lcd.setCursor(0,0);
@@ -591,7 +592,7 @@ void randomCodeGenerationDisplay ()
 
   lcd.print(gameCode);
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 }
 
 /**
@@ -605,11 +606,11 @@ void keyConfirmationConfigDisplay ()
   lcd.setCursor(0,1);
   lcd.print("to start !");
 
-  bool currentKeyState = readKeyState();
+  bool currentKeyState = readKey();
   bool previousKeyState = currentKeyState;
   while (true)
   {
-    currentKeyState = readKeyState();
+    currentKeyState = readKey();
     if (currentKeyState != previousKeyState) break;
     else previousKeyState = currentKeyState;
   }
@@ -629,7 +630,7 @@ void readyToStartDisplay ()
   lcd.setCursor(0,1);
   lcd.print("D to Start !");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 
   startGameTimer();
 }
@@ -645,7 +646,7 @@ void noOnesWinEndDisplay ()
   lcd.setCursor(0,1);
   lcd.print("Press D.");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 }
 
 /**
@@ -659,7 +660,7 @@ void terrosWinEndDisplay ()
   lcd.setCursor(0,1);
   lcd.print("Press D.");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 }
 
 /**
@@ -673,7 +674,7 @@ void antisWinEndDisplay ()
   lcd.setCursor(0,1);
   lcd.print("Press D.");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 }
 
 /**
@@ -689,7 +690,7 @@ void teamNumberWinEndDisplay ()
   lcd.setCursor(0,1);
   lcd.print("Press D.");
 
-  while(myKeypad.getKey() != 'D'){}
+  while(readPad() != 'D'){}
 }
 
 //------------------------------------------------------------------------------
@@ -708,7 +709,7 @@ void waitingForCodeIngameDisplay ()
 
   while (readCode != gameCode)
   {
-    readCode = readCodeAndKey(ingameCodeLength);
+    readCode = readAndDisplayUserInput(CODE, true, false, ingameCodeLength);
     if (readCode == ENDGAME_STRING) break;
     else if (readCode == gameCode) break;
     else
@@ -733,11 +734,11 @@ void waitingForKeyIngameDisplay ()
   lcd.setCursor(0,1);
   lcd.print("the key !");
 
-  bool currentKeyState = readKeyState();
+  bool currentKeyState = readKey();
   bool previousKeyState = currentKeyState;
   while (true)
   {
-    currentKeyState = readKeyState();
+    currentKeyState = readKey();
     if (currentKeyState != previousKeyState) break;
     else previousKeyState = currentKeyState;
   }
@@ -752,7 +753,7 @@ int waitingForEitherIngameDisplay ()
   lcd.setCursor(0,0);
   lcd.print("Key/code :");
 
-  String returnCode = readCodeAndKey(ingameCodeLength);
+  String returnCode = readAndDisplayUserInput(CODE, true, true, ingameCodeLength);
 
   while (true)
   {
@@ -771,7 +772,7 @@ int waitingForEitherIngameDisplay ()
       delay(1000);
       lcd.setCursor(0,1);
       lcd.print("                ");
-      returnCode = readCodeAndKey(ingameCodeLength);
+      returnCode = readAndDisplayUserInput(CODE, true, true, ingameCodeLength);
     }
   }
 }
@@ -795,7 +796,7 @@ void waitingForCodeActivationIngameDisplay ()
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("New Code :");
-  gameCode = readCodeAndKey(ingameCodeLength);
+  gameCode = readAndDisplayUserInput(CODE, true, false, ingameCodeLength);
 }
 
 /**
@@ -813,7 +814,7 @@ void waitingForKeyActivationIngameDisplay ()
   bool previousKeyState;
   while (true)
   {
-    currentKeyState = readKeyState();
+    currentKeyState = readKey();
     if (currentKeyState != previousKeyState) break;
     else previousKeyState = currentKeyState;
   }
@@ -828,7 +829,7 @@ int waitingForEitherActivationIngameDisplay ()
   lcd.setCursor(0,0);
   lcd.print("Key/code :");
 
-  String returnCode = readCodeAndKey(ingameCodeLength);
+  String returnCode = readAndDisplayUserInput(CODE, true, true, ingameCodeLength);
 
   if (returnCode == KEY_DEACTIVATION) return 1;
   else
