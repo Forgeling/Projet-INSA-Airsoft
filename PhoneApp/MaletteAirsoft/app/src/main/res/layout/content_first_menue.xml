@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/darkBlue"
+    android:gravity="center_horizontal">
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:id="@+id/imageView"
+        android:src="@mipmap/logo_petit"
+        android:layout_gravity="center"
+        android:contentDescription="@string/LogoAsso"
+        android:theme="@style/AppTheme"
+        android:layout_below="@id/firstMenuToolbar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="25dp"
+        android:layout_marginTop="60dp"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/quickMatchButton"
+        android:text="@string/quickMatchButton"
+        android:onClick="quickMatch"
+        android:layout_below="@+id/imageView"
+        android:layout_alignLeft="@+id/matchView"
+        android:layout_alignStart="@+id/matchView"
+        android:layout_alignRight="@+id/configButton"
+        android:layout_alignEnd="@+id/configButton" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/configButton"
+        android:text="@string/configuration"
+        android:onClick="config"
+        android:layout_below="@+id/quickMatchButton"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/matchView"
+        android:text="@string/partieView"
+        android:onClick="viewMatch"
+        android:layout_below="@+id/configButton"
+        android:layout_alignRight="@+id/configButton"
+        android:layout_alignEnd="@+id/configButton" />
+
+</RelativeLayout>

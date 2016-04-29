@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="aeldhran.maletteairsoft">
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/logo_petit"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".quickMatch"
+            android:theme="@style/AppTheme"
+            android:parentActivityName="aeldhran.maletteairsoft.MatchDuration"></activity>/>
+
+        <activity android:name=".matchView"
+            android:theme="@style/AppTheme"
+            android:parentActivityName="aeldhran.maletteairsoft.MainActivity"></activity>/>
+
+        <activity android:name=".config"
+            android:theme="@style/AppTheme"
+            android:parentActivityName="aeldhran.maletteairsoft.MainActivity"></activity>/>
+
+        <activity
+            android:name=".MatchDuration"
+            android:label="@string/title_activity_match_duration"
+            android:parentActivityName="aeldhran.maletteairsoft.MainActivity"
+            android:theme="@style/AppTheme"></activity>
+    </application>
+
+</manifest>

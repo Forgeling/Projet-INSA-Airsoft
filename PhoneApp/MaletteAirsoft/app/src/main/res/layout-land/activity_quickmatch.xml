@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/darkBlue">
+
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/quickMatchToolbar"
+        app:titleTextColor="@color/white"
+        app:title="@string/quickMatchButton"
+        android:elevation="4dp"
+        android:minHeight="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:title="@string/configuration"
+        style="@style/AppTheme"
+        android:touchscreenBlocksFocus="false">
+
+    </android.support.v7.widget.Toolbar>
+
+    <include layout="@layout/content_quickmatch">
+
+    </include>
+
+</LinearLayout>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/darkBlue"
+    android:gravity="center_horizontal|center_vertical"
+    tools:context=".Main">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeAAT"
+        android:layout_above="@id/ButtonModeDAT"
+        android:hint="@string/mod1"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeDAT"
+        android:layout_above="@id/ButtonModeC"
+        android:hint="@string/mod2"
+        android:layout_alignLeft="@+id/ButtonModeAAT"
+        android:layout_alignRight="@id/ButtonModeAAT"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeC"
+        android:layout_above="@id/ButtonModeDT"
+        android:hint="@string/mod3"
+        android:layout_alignLeft="@+id/ButtonModeAAT"
+        android:layout_alignRight="@id/ButtonModeAAT"
+    />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ButtonModeDT"
+        android:hint="@string/mod4"
+        android:layout_alignParentBottom="true"
+        android:layout_alignLeft="@+id/ButtonModeAAT"
+        android:layout_alignRight="@id/ButtonModeAAT"
+    />
+
+
+</RelativeLayout>

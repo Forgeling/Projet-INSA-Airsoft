@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Malette Airsoft</string>
+    <string name="quickMatchButton">Partie rapide</string>
+    <string name="configuration">Partie personnalise</string>
+    <string name="partieView">Aperçut de la partie</string>
+
+    <string name="gameMode">Mode de jeu :</string>
+    <string name="mod1">Attaque anti-terroriste</string>
+    <string name="mod2">Défense anti-terroriste</string>
+    <string name="mod3">Capture</string>
+    <string name="mod4">Désamorçage</string>
+
+    <string name="time">temps de la partie</string>
+    <string name="LogoAsso">Logo asso</string>
+    <string name="KeyMod">par clé</string>
+    <string name="passwordMod">par mot de passe</string>
+    <string name="inputPassword">mot de passe</string>
+    <string name="teamNumber">Nombre d\'equipe</string>
+    <string name="team">Nombre d\'équipe</string>
+    <string name="DefuseTime">Temps de désamorçage</string>
+    <string name="navigation_icon_description">fleche de retour</string>
+    <string name="shortMatch">Partie courte</string>
+    <string name="mediumMatch">Moyenne partie</string>
+    <string name="longMatch">Partie longue</string>
+    <string name="send">envoyer</string>
+    <string name="save">enregistrer</string>
+    <string name="DefusingMode">Méthode de désamorçage :</string>
+    <string name="Scan">connection Malette</string>
+    <string name="Disconnect">deconnection</string>
+    <string name="error_bluetooth_not_supported">Bluetooth non supporté</string>
+    <string name="unknown_device">peripherique inconnue</string>
+    <string name="Connected">connecté à la malette</string>
+    <string name="notConnected">deconnecté</string>
+    <string name="deconnection">deconnecté</string>
+
+</resources>

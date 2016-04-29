@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/AppTheme"
+    android:background="@color/darkBlue"
+    android:weightSum="1">
+
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@id/configToolbar"
+        app:titleTextColor="@color/white"
+        app:title="@string/configuration"
+        android:elevation="4dp"
+        android:minHeight="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:title="@string/configuration"
+        style="@style/AppTheme"
+        android:touchscreenBlocksFocus="false">
+
+    </android.support.v7.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <include layout="@layout/content_config"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"></include>
+
+    </ScrollView>
+
+</LinearLayout>

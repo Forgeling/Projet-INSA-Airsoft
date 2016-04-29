@@ -41,6 +41,8 @@ public abstract  class BlunoLibrary  extends Activity{
 
 	public abstract void onConectionStateChange(connectionStateEnum theconnectionStateEnum);
 	public abstract void onSerialReceived(String theString);
+	
+	
 	public void serialSend(String theString){
 		if (mConnectionState == connectionStateEnum.isConnected) {
 			mSCharacteristic.setValue(theString);
@@ -67,7 +69,8 @@ public abstract  class BlunoLibrary  extends Activity{
 		TextView deviceName;
 		TextView deviceAddress;
 	}
-    private static BluetoothGattCharacteristic mSCharacteristic, mModelNumberCharacteristic, mSerialPortCharacteristic, mCommandCharacteristic;
+    
+	private static BluetoothGattCharacteristic mSCharacteristic, mModelNumberCharacteristic, mSerialPortCharacteristic, mCommandCharacteristic;
     BluetoothLeService mBluetoothLeService;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
             new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
@@ -95,7 +98,9 @@ public abstract  class BlunoLibrary  extends Activity{
 			mConnectionState=connectionStateEnum.isToScan;
 			onConectionStateChange(mConnectionState);
 			mBluetoothLeService.close();
-		}};
+		}
+		
+	};
 		
     private Runnable mDisonnectingOverTimeRunnable=new Runnable(){
 
@@ -105,12 +110,16 @@ public abstract  class BlunoLibrary  extends Activity{
 			mConnectionState=connectionStateEnum.isToScan;
 			onConectionStateChange(mConnectionState);
 			mBluetoothLeService.close();
-		}};
+		}
+		
+	};
     
 	public static final String SerialPortUUID="0000dfb1-0000-1000-8000-00805f9b34fb";
 	public static final String CommandUUID="0000dfb2-0000-1000-8000-00805f9b34fb";
     public static final String ModelNumberStringUUID="00002a24-0000-1000-8000-00805f9b34fb";
 	
+	
+	/******** - ON CREATE - *********/
     public void onCreateProcess()
     {
     	if(!initiate())

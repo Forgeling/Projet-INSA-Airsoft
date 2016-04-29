@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Malette Airsoft</string>
+    <string name="quickMatchButton">Quick Match</string>
+    <string name="configuration">personalized match</string>
+    <string name="partieView">view current match</string>
+
+    <string name="gameMode">Game Mode :</string>
+    <string name="mod1">Anti-terrorist attack</string>
+    <string name="mod2">Anti-terrorist Défense</string>
+    <string name="mod3">Capture</string>
+    <string name="mod4">Defusing</string>
+
+    <string name="time">Match Time</string>
+    <string name="LogoAsso">Logo asso</string>
+    <string name="KeyMod">By Key</string>
+    <string name="passwordMod">By password</string>
+    <string name="inputPassword">password</string>
+    <string name="teamNumber">number of team</string>
+    <string name="team">number of team</string>
+    <string name="DefuseTime">Time for defusing</string>
+    <string name="navigation_icon_description">fleche de retour</string>
+
+
+</resources>
